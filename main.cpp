@@ -2,6 +2,7 @@
 #include <iostream>
 #include <queue>
 #include <vector>
+#include <numeric>
 
 class graph {
 public:
@@ -194,11 +195,43 @@ private:
 
 class connected_components {
 public:
-    connected_components(graph const& graph);
-     
+    connected_components(graph const& graph) 
+        : g_{graph}
+    {
+        visited_.resize(g_.vertices());
+        components_ids_.resize(g_.vertices());
+        std::iota(components_ids_.begin(), components_ids_.end(), 0);
+
+        for(auto v = 0; v < g_.vertices(); ++v) {
+            if(!visited_[v]) {
+                dfs(v);
+                ++count_;
+            }
+        }
+    }
+
+    [[nodiscard]] int size() const noexcept {
+        return count_;
+    }
+
+    [[nodiscard]] int component(int v) const noexcept {
+        return components_ids_[v];
+    }
+
+    [[nodiscard]] int connected(int v, int w) const noexcept {
+        return component(v) == component(w);
+    }
+
 private:
     void dfs(int v) {
+        visited_[v] = true;
+        components_ids_[v] = count_;
 
+        for(auto const& e: g_.adjacent_vertices(v)) {
+            if(!visited_[e]) {
+                dfs(e);
+            }
+        }
     }
 
     graph const& g_;
@@ -241,6 +274,12 @@ int main(int argc, char** argv) {
     }
 
     std::cout << std::endl;
+
+    connected_components cc(g);
+
+    std::cout << "connected (0,3): " << cc.connected(0, 3) << std::endl;
+    std::cout << "connected (0,9: " << cc.connected(0, 9) << std::endl;
+
 
     return EXIT_SUCCESS;
 }
